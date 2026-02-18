@@ -1,0 +1,38 @@
+# IronClaw Base Image — Fly.io deployment configuration
+# This is the managed per-customer CRM container deployed by ironclaw-dashboard.
+# The dashboard provisioner creates Fly Machines directly via API, so this config
+# is primarily used for the initial `fly deploy` to push the image to the registry.
+
+app = "ironclaw-base"
+primary_region = "iad"
+
+[build]
+dockerfile = "Dockerfile"
+
+[env]
+NODE_ENV = "production"
+OPENCLAW_PREFER_PNPM = "1"
+OPENCLAW_STATE_DIR = "/data"
+NODE_OPTIONS = "--max-old-space-size=1536"
+
+[http_service]
+internal_port = 3100
+force_https = true
+auto_stop_machines = "stop"
+auto_start_machines = true
+min_machines_running = 0
+
+[http_service.checks]
+  [http_service.checks.health]
+  interval = "30s"
+  timeout = "5s"
+  grace_period = "30s"
+  path = "/health"
+
+[[vm]]
+size = "shared-cpu-2x"
+memory = "2048mb"
+
+[mounts]
+source = "ironclaw_data"
+destination = "/data"
