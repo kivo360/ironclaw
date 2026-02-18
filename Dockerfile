@@ -15,6 +15,7 @@ RUN corepack enable
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
+RUN mkdir -p /app && chown node:node /app
 WORKDIR /app
 
 ARG OPENCLAW_DOCKER_APT_PACKAGES=""
@@ -25,16 +26,16 @@ RUN --mount=type=cache,target=/var/cache/apt \
       DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $OPENCLAW_DOCKER_APT_PACKAGES; \
     fi
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-COPY ui/package.json ./ui/package.json
-COPY apps/web/package.json ./apps/web/package.json
-COPY patches ./patches
-COPY scripts ./scripts
+COPY --chown=node:node package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY --chown=node:node ui/package.json ./ui/package.json
+COPY --chown=node:node apps/web/package.json ./apps/web/package.json
+COPY --chown=node:node patches ./patches
+COPY --chown=node:node scripts ./scripts
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile
 
-COPY . .
+COPY --chown=node:node . .
 
 # Force pnpm for UI build (Bun may fail on ARM/Synology architectures)
 ENV OPENCLAW_PREFER_PNPM=1
@@ -46,9 +47,6 @@ RUN pnpm build && \
     pnpm web:prepack
 
 ENV NODE_ENV=production
-
-# Allow non-root user to write temp/data files at runtime
-RUN chown -R node:node /app
 
 # Security hardening: Run as non-root user
 USER node
