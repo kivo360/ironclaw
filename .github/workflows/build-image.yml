@@ -39,13 +39,10 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix=
 
-      - name: Inject/extract pnpm store cache
+      - name: Inject/extract BuildKit cache mounts
         uses: reproducible-containers/buildkit-cache-dance@v3
         with:
-          cache-map: |
-            {
-              "/pnpm/store": "/tmp/.buildx-cache-pnpm"
-            }
+          cache-dir: /tmp/.buildx-cache-mounts
 
       - name: Build and push
         uses: docker/build-push-action@v6
