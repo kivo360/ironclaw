@@ -31,6 +31,16 @@ coverage
 tmp
 **/tmp
 
+# CI/CD and documentation (not needed in image)
+.github/
+docs/
+*.test.*
+tests/
+__tests__/
+*.spec.*
+*.md
+LICENSE
+
 # build artifacts
 dist
 **/dist
