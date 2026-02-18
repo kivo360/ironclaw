@@ -1,8 +1,12 @@
 # syntax=docker/dockerfile:1
-FROM node:22-bookworm
+FROM node:22-bookworm-slim
 
-# Install Bun (required for build scripts)
-RUN curl -fsSL https://bun.sh/install | bash
+# Install Bun (required for build scripts) + curl (for bun installer & health checks)
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt \
+    apt-get update && apt-get install -y --no-install-recommends curl && \
+    curl -fsSL https://bun.sh/install | bash
+
 ENV PATH="/root/.bun/bin:${PATH}"
 
 RUN corepack enable
@@ -31,21 +35,22 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile
 
 COPY . .
-RUN pnpm build
+
 # Force pnpm for UI build (Bun may fail on ARM/Synology architectures)
 ENV OPENCLAW_PREFER_PNPM=1
-RUN pnpm ui:build
-RUN pnpm web:build
-RUN pnpm web:prepack
+
+# Single RUN to avoid intermediate layer snapshots
+RUN pnpm build && \
+    pnpm ui:build && \
+    pnpm web:build && \
+    pnpm web:prepack
 
 ENV NODE_ENV=production
 
-# Allow non-root user to write temp files during runtime/tests.
+# Allow non-root user to write temp/data files at runtime
 RUN chown -R node:node /app
 
 # Security hardening: Run as non-root user
-# The node:22-bookworm image includes a 'node' user (uid 1000)
-# This reduces the attack surface by preventing container escape via root privileges
 USER node
 
 EXPOSE 3100
