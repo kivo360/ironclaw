@@ -34,10 +34,18 @@ for inner_nm in "$STANDALONE_NM"/.pnpm/*/node_modules; do
       for child in "$pkg"/*; do
         [ -e "$child" ] || continue
         child_name="$(basename "$child")"
+        # Remove dangling symlinks left by pnpm before copying real dirs
+        if [ -L "$STANDALONE_NM/$name/$child_name" ]; then
+          rm -f "$STANDALONE_NM/$name/$child_name"
+        fi
         [ -e "$STANDALONE_NM/$name/$child_name" ] || cp -r "$child" "$STANDALONE_NM/$name/$child_name"
       done
     else
       # Regular package — copy if not already present.
+      # Remove dangling symlinks left by pnpm before copying real dirs
+      if [ -L "$STANDALONE_NM/$name" ]; then
+        rm -f "$STANDALONE_NM/$name"
+      fi
       [ -e "$STANDALONE_NM/$name" ] || cp -r "$pkg" "$STANDALONE_NM/$name"
     fi
   done
