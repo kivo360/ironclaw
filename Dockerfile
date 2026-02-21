@@ -67,6 +67,7 @@ COPY --from=builder --chown=node:node /app/pnpm-workspace.yaml ./pnpm-workspace.
 COPY --from=builder --chown=node:node /app/apps/web/.next/standalone ./apps/web/.next/standalone
 COPY --from=builder --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=builder --chown=node:node /app/apps/web/public ./apps/web/public
+COPY --from=builder --chown=node:node /app/docs ./docs
 COPY --from=builder --chown=node:node /app/extensions ./extensions
 COPY --from=builder --chown=node:node /app/skills ./skills
 COPY --from=builder --chown=node:node /app/node_modules ./node_modules

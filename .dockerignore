@@ -41,6 +41,11 @@ __tests__/
 *.md
 LICENSE
 
+# Re-include workspace templates needed by gateway at runtime
+!docs/reference/
+!docs/reference/templates/
+!docs/reference/templates/**
+
 # build artifacts
 dist
 **/dist
