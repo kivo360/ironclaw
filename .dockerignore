@@ -56,6 +56,10 @@ apps/ios/build
 # large app trees not needed for CLI build
 apps/
 assets/
+
+# Re-include seed database needed for workspace init at runtime
+!assets/seed/
+!assets/seed/**
 Peekaboo/
 Swabble/
 Core/

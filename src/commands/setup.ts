@@ -1,6 +1,9 @@
 import JSON5 from "json5";
 import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import type { RuntimeEnv } from "../runtime.js";
+import { resolveBundledSkillsDir } from "../agents/skills/bundled-dir.js";
 import { DEFAULT_AGENT_WORKSPACE_DIR, ensureAgentWorkspace } from "../agents/workspace.js";
 import { type OpenClawConfig, createConfigIO, writeConfigFile } from "../config/config.js";
 import { formatConfigPath, logConfigUpdated } from "../config/logging.js";
@@ -68,6 +71,25 @@ export async function setupCommand(
     ensureBootstrapFiles: !next.agents?.defaults?.skipBootstrap,
   });
   runtime.log(`Workspace OK: ${shortenHomePath(ws.dir)}`);
+
+  const bundledSkillsDir = resolveBundledSkillsDir();
+  if (bundledSkillsDir) {
+    const userSkillsDir = path.join(os.homedir(), ".openclaw", "skills");
+    try {
+      const stat = await fs.lstat(userSkillsDir).catch(() => null);
+      if (!stat) {
+        await fs.mkdir(path.dirname(userSkillsDir), { recursive: true });
+        await fs.symlink(bundledSkillsDir, userSkillsDir, "dir");
+        runtime.log(
+          `Skills OK: ${shortenHomePath(userSkillsDir)} → ${shortenHomePath(bundledSkillsDir)}`,
+        );
+      } else {
+        runtime.log(`Skills OK: ${shortenHomePath(userSkillsDir)}`);
+      }
+    } catch {
+      runtime.log(`Skills: skipped symlink (${shortenHomePath(userSkillsDir)})`);
+    }
+  }
 
   const sessionsDir = resolveSessionTranscriptsDir();
   await fs.mkdir(sessionsDir, { recursive: true });

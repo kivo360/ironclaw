@@ -48,8 +48,18 @@ ARG OPENCLAW_DOCKER_APT_PACKAGES=""
 
 RUN --mount=type=cache,id=apt-runtime,target=/var/cache/apt \
     apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends curl ${OPENCLAW_DOCKER_APT_PACKAGES} && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends curl unzip ${OPENCLAW_DOCKER_APT_PACKAGES} && \
     rm -rf /var/lib/apt/lists/*
+
+# Install DuckDB CLI (needed by web app to query workspace.duckdb)
+RUN ARCH=$(dpkg --print-architecture) && \
+    if [ "$ARCH" = "amd64" ]; then DUCKDB_ARCH="linux_amd64"; \
+    elif [ "$ARCH" = "arm64" ]; then DUCKDB_ARCH="linux_arm64"; \
+    else echo "Unsupported arch: $ARCH" && exit 1; fi && \
+    curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.2.1/duckdb_cli-${DUCKDB_ARCH}.zip" -o /tmp/duckdb.zip && \
+    unzip /tmp/duckdb.zip -d /usr/local/bin && \
+    chmod +x /usr/local/bin/duckdb && \
+    rm /tmp/duckdb.zip
 
 RUN corepack enable
 
@@ -70,6 +80,7 @@ COPY --from=builder --chown=node:node /app/apps/web/public ./apps/web/public
 COPY --from=builder --chown=node:node /app/docs ./docs
 COPY --from=builder --chown=node:node /app/extensions ./extensions
 COPY --from=builder --chown=node:node /app/skills ./skills
+COPY --from=builder --chown=node:node /app/assets/seed ./assets/seed
 COPY --from=builder --chown=node:node /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/ui ./ui
 COPY --from=builder --chown=node:node /app/pnpm-lock.yaml ./pnpm-lock.yaml
