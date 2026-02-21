@@ -53,8 +53,8 @@ RUN --mount=type=cache,id=apt-runtime,target=/var/cache/apt \
 
 # Install DuckDB CLI (needed by web app to query workspace.duckdb)
 RUN ARCH=$(dpkg --print-architecture) && \
-    if [ "$ARCH" = "amd64" ]; then DUCKDB_ARCH="linux_amd64"; \
-    elif [ "$ARCH" = "arm64" ]; then DUCKDB_ARCH="linux_arm64"; \
+    if [ "$ARCH" = "amd64" ]; then DUCKDB_ARCH="linux-amd64"; \
+    elif [ "$ARCH" = "arm64" ]; then DUCKDB_ARCH="linux-arm64"; \
     else echo "Unsupported arch: $ARCH" && exit 1; fi && \
     curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.2.1/duckdb_cli-${DUCKDB_ARCH}.zip" -o /tmp/duckdb.zip && \
     unzip /tmp/duckdb.zip -d /usr/local/bin && \
