@@ -4,8 +4,7 @@ FROM node:22-bookworm-slim AS deps
 
 ARG OPENCLAW_DOCKER_APT_PACKAGES=""
 
-RUN --mount=type=cache,target=/var/cache/apt \
-    --mount=type=cache,target=/var/lib/apt \
+RUN --mount=type=cache,id=apt-deps,target=/var/cache/apt \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends curl ${OPENCLAW_DOCKER_APT_PACKAGES} && \
     rm -rf /var/lib/apt/lists/* && \
@@ -47,8 +46,7 @@ FROM node:22-bookworm-slim AS runtime
 
 ARG OPENCLAW_DOCKER_APT_PACKAGES=""
 
-RUN --mount=type=cache,target=/var/cache/apt \
-    --mount=type=cache,target=/var/lib/apt \
+RUN --mount=type=cache,id=apt-runtime,target=/var/cache/apt \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends curl ${OPENCLAW_DOCKER_APT_PACKAGES} && \
     rm -rf /var/lib/apt/lists/*
