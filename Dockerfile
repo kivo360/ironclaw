@@ -48,7 +48,7 @@ ARG OPENCLAW_DOCKER_APT_PACKAGES=""
 
 RUN --mount=type=cache,id=apt-runtime,target=/var/cache/apt \
     apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends curl unzip ${OPENCLAW_DOCKER_APT_PACKAGES} && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl unzip ${OPENCLAW_DOCKER_APT_PACKAGES} && \
     rm -rf /var/lib/apt/lists/*
 
 # Install DuckDB CLI (needed by web app to query workspace.duckdb)
