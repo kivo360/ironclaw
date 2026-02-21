@@ -8,6 +8,8 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  FLY_REGISTRY: registry.fly.io
+  FLY_APP: ironclaw-base
 
 jobs:
   build-and-push:
@@ -31,11 +33,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Log in to Fly.io registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.FLY_REGISTRY }}
+          username: x
+          password: ${{ secrets.FLY_API_TOKEN }}
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            ${{ env.FLY_REGISTRY }}/${{ env.FLY_APP }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix=
@@ -46,5 +57,6 @@ jobs:
           project: rdlhplbjgc
           context: .
           push: true
+          save: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
