@@ -30,6 +30,9 @@ persist_to_volume ".cache"
 persist_to_volume ".local"
 persist_to_volume ".agents"
 
+mkdir -p "$VOLUME/bin"
+export PATH="$VOLUME/bin:$PATH"
+
 if [ -d "/app/skills" ]; then
   mkdir -p "$VOLUME/.openclaw"
   ln -sfn /app/skills "$VOLUME/.openclaw/skills"
