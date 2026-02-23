@@ -48,7 +48,13 @@ ARG OPENCLAW_DOCKER_APT_PACKAGES=""
 
 RUN --mount=type=cache,id=apt-runtime,target=/var/cache/apt \
     apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl unzip ${OPENCLAW_DOCKER_APT_PACKAGES} && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      ca-certificates curl unzip \
+      python3 python3-venv python3-dev \
+      git jq ripgrep sqlite3 \
+      build-essential \
+      openssh-client wget \
+      ${OPENCLAW_DOCKER_APT_PACKAGES} && \
     rm -rf /var/lib/apt/lists/*
 
 # Install DuckDB CLI (needed by web app to query workspace.duckdb)
@@ -61,8 +67,9 @@ RUN ARCH=$(dpkg --print-architecture) && \
     chmod +x /usr/local/bin/duckdb && \
     rm /tmp/duckdb.zip
 
-RUN corepack enable
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
 
+RUN corepack enable
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV NODE_ENV=production
@@ -85,9 +92,14 @@ COPY --from=builder --chown=node:node /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/ui ./ui
 COPY --from=builder --chown=node:node /app/pnpm-lock.yaml ./pnpm-lock.yaml
 
-USER node
 
+# Install qmd (markdown knowledge base search with sqlite-vec)
+RUN npm install -g @tobilu/qmd
+
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+
+USER node
 EXPOSE 3100
 EXPOSE 18789
-
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["node", "openclaw.mjs", "gateway", "--allow-unconfigured", "--bind", "lan"]
