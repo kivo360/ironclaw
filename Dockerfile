@@ -96,6 +96,10 @@ COPY --from=builder --chown=node:node /app/pnpm-lock.yaml ./pnpm-lock.yaml
 # Install qmd (markdown knowledge base search with sqlite-vec)
 RUN npm install -g @tobilu/qmd
 
+
+# Prepare Homebrew prefix dir so entrypoint (running as node) can create the symlink
+RUN mkdir -p /home/linuxbrew && chown node:node /home/linuxbrew
+
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 USER node
